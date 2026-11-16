@@ -1,11 +1,27 @@
 import { neon } from "@neondatabase/serverless";
+import {
+  FALLBACK_CASE_STUDIES,
+  FALLBACK_TOPICS,
+  FALLBACK_SETTINGS,
+  FALLBACK_FAQS,
+} from "./fallback-data";
 
 function getSql() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error("DATABASE_URL is not defined in environment variables");
+    return null;
   }
   return neon(connectionString);
+}
+
+function getRequiredSql() {
+  const sql = getSql();
+  if (!sql) {
+    throw new Error(
+      "DATABASE_URL is not defined in environment variables. Please configure it in your Vercel Project Settings."
+    );
+  }
+  return sql;
 }
 
 export type BlockType =
@@ -113,126 +129,191 @@ export async function getCaseStudies(options?: {
   featuredOnly?: boolean;
 }): Promise<CaseStudy[]> {
   const sql = getSql();
-  const statusFilter = options?.status || "published";
-
-  let query;
-  if (statusFilter === "all") {
-    query = await sql`
-      SELECT cs.*, t.name as topic_name, t.slug as topic_slug
-      FROM case_studies cs
-      LEFT JOIN topics t ON cs.topic_id = t.id
-      ORDER BY cs.display_order ASC, cs.created_at DESC;
-    `;
-  } else if (options?.featuredOnly) {
-    query = await sql`
-      SELECT cs.*, t.name as topic_name, t.slug as topic_slug
-      FROM case_studies cs
-      LEFT JOIN topics t ON cs.topic_id = t.id
-      WHERE cs.status = 'published' AND cs.featured = TRUE
-      ORDER BY cs.display_order ASC, cs.created_at DESC;
-    `;
-  } else {
-    query = await sql`
-      SELECT cs.*, t.name as topic_name, t.slug as topic_slug
-      FROM case_studies cs
-      LEFT JOIN topics t ON cs.topic_id = t.id
-      WHERE cs.status = ${statusFilter}
-      ORDER BY cs.display_order ASC, cs.created_at DESC;
-    `;
+  if (!sql) {
+    let list = FALLBACK_CASE_STUDIES;
+    if (options?.featuredOnly) list = list.filter((c) => c.featured);
+    if (options?.topicSlug && options.topicSlug !== "all") {
+      list = list.filter((c) => c.topic_slug === options.topicSlug || c.topic_id === options.topicSlug);
+    }
+    return list;
   }
 
-  let list = (query as any[]).map(formatCaseStudyRow);
-  if (options?.topicSlug && options.topicSlug !== "all") {
-    list = list.filter((cs) => cs.topic_slug === options.topicSlug || cs.topic_id === options.topicSlug);
+  try {
+    const statusFilter = options?.status || "published";
+    let query;
+    if (statusFilter === "all") {
+      query = await sql`
+        SELECT cs.*, t.name as topic_name, t.slug as topic_slug
+        FROM case_studies cs
+        LEFT JOIN topics t ON cs.topic_id = t.id
+        ORDER BY cs.display_order ASC, cs.created_at DESC;
+      `;
+    } else if (options?.featuredOnly) {
+      query = await sql`
+        SELECT cs.*, t.name as topic_name, t.slug as topic_slug
+        FROM case_studies cs
+        LEFT JOIN topics t ON cs.topic_id = t.id
+        WHERE cs.status = 'published' AND cs.featured = TRUE
+        ORDER BY cs.display_order ASC, cs.created_at DESC;
+      `;
+    } else {
+      query = await sql`
+        SELECT cs.*, t.name as topic_name, t.slug as topic_slug
+        FROM case_studies cs
+        LEFT JOIN topics t ON cs.topic_id = t.id
+        WHERE cs.status = ${statusFilter}
+        ORDER BY cs.display_order ASC, cs.created_at DESC;
+      `;
+    }
+
+    let list = (query as any[]).map(formatCaseStudyRow);
+    if (options?.topicSlug && options.topicSlug !== "all") {
+      list = list.filter((cs) => cs.topic_slug === options.topicSlug || cs.topic_id === options.topicSlug);
+    }
+    return list;
+  } catch (err) {
+    console.warn("Database query failed, returning fallback case studies:", err);
+    let list = FALLBACK_CASE_STUDIES;
+    if (options?.featuredOnly) list = list.filter((c) => c.featured);
+    if (options?.topicSlug && options.topicSlug !== "all") {
+      list = list.filter((c) => c.topic_slug === options.topicSlug || c.topic_id === options.topicSlug);
+    }
+    return list;
   }
-  return list;
 }
 
 export async function getCaseStudyBySlug(slug: string): Promise<CaseStudy | null> {
   const sql = getSql();
-  const rows = await sql`
-    SELECT cs.*, t.name as topic_name, t.slug as topic_slug
-    FROM case_studies cs
-    LEFT JOIN topics t ON cs.topic_id = t.id
-    WHERE cs.slug = ${slug}
-    LIMIT 1;
-  `;
-  if (!rows || rows.length === 0) return null;
-  return formatCaseStudyRow(rows[0]);
+  if (!sql) {
+    return FALLBACK_CASE_STUDIES.find((c) => c.slug === slug) || null;
+  }
+  try {
+    const rows = await sql`
+      SELECT cs.*, t.name as topic_name, t.slug as topic_slug
+      FROM case_studies cs
+      LEFT JOIN topics t ON cs.topic_id = t.id
+      WHERE cs.slug = ${slug}
+      LIMIT 1;
+    `;
+    if (!rows || rows.length === 0) {
+      return FALLBACK_CASE_STUDIES.find((c) => c.slug === slug) || null;
+    }
+    return formatCaseStudyRow(rows[0]);
+  } catch (err) {
+    console.warn("Database query by slug failed, returning fallback:", err);
+    return FALLBACK_CASE_STUDIES.find((c) => c.slug === slug) || null;
+  }
 }
 
 export async function getCaseStudyById(id: string): Promise<CaseStudy | null> {
   const sql = getSql();
-  const rows = await sql`
-    SELECT cs.*, t.name as topic_name, t.slug as topic_slug
-    FROM case_studies cs
-    LEFT JOIN topics t ON cs.topic_id = t.id
-    WHERE cs.id = ${id}
-    LIMIT 1;
-  `;
-  if (!rows || rows.length === 0) return null;
-  return formatCaseStudyRow(rows[0]);
+  if (!sql) {
+    return FALLBACK_CASE_STUDIES.find((c) => c.id === id) || null;
+  }
+  try {
+    const rows = await sql`
+      SELECT cs.*, t.name as topic_name, t.slug as topic_slug
+      FROM case_studies cs
+      LEFT JOIN topics t ON cs.topic_id = t.id
+      WHERE cs.id = ${id}
+      LIMIT 1;
+    `;
+    if (!rows || rows.length === 0) {
+      return FALLBACK_CASE_STUDIES.find((c) => c.id === id) || null;
+    }
+    return formatCaseStudyRow(rows[0]);
+  } catch {
+    return FALLBACK_CASE_STUDIES.find((c) => c.id === id) || null;
+  }
 }
 
 export async function getAllTopics(): Promise<Topic[]> {
   const sql = getSql();
-  const rows = await sql`
-    SELECT * FROM topics ORDER BY name ASC;
-  `;
-  return (rows as any[]).map((r) => {
-    let t = r.template;
-    if (typeof t === "string") {
-      try {
-        t = JSON.parse(t);
-      } catch {
-        t = [];
+  if (!sql) {
+    return FALLBACK_TOPICS;
+  }
+  try {
+    const rows = await sql`
+      SELECT * FROM topics ORDER BY name ASC;
+    `;
+    return (rows as any[]).map((r) => {
+      let t = r.template;
+      if (typeof t === "string") {
+        try {
+          t = JSON.parse(t);
+        } catch {
+          t = [];
+        }
       }
-    }
-    return {
-      id: r.id,
-      slug: r.slug,
-      name: r.name,
-      description: r.description || "",
-      template: Array.isArray(t) ? t : [],
-      created_at: r.created_at
-    };
-  });
+      return {
+        id: r.id,
+        slug: r.slug,
+        name: r.name,
+        description: r.description || "",
+        template: Array.isArray(t) ? t : [],
+        created_at: r.created_at
+      };
+    });
+  } catch {
+    return FALLBACK_TOPICS;
+  }
 }
 
 export async function getSiteSettings(): Promise<Record<string, any>> {
   const sql = getSql();
-  const rows = await sql`SELECT key, value FROM site_settings;`;
-  const result: Record<string, any> = {};
-  for (const row of rows as any[]) {
-    if (typeof row.value === "string") {
-      try {
-        result[row.key] = JSON.parse(row.value);
-      } catch {
+  if (!sql) {
+    return FALLBACK_SETTINGS;
+  }
+  try {
+    const rows = await sql`SELECT key, value FROM site_settings;`;
+    if (!rows || rows.length === 0) return FALLBACK_SETTINGS;
+    const result: Record<string, any> = { ...FALLBACK_SETTINGS };
+    for (const row of rows as any[]) {
+      if (typeof row.value === "string") {
+        try {
+          result[row.key] = JSON.parse(row.value);
+        } catch {
+          result[row.key] = row.value;
+        }
+      } else {
         result[row.key] = row.value;
       }
-    } else {
-      result[row.key] = row.value;
     }
+    return result;
+  } catch {
+    return FALLBACK_SETTINGS;
   }
-  return result;
 }
 
 export async function getFaqs(): Promise<FaqItem[]> {
   const sql = getSql();
-  const rows = await sql`SELECT * FROM faq ORDER BY display_order ASC, created_at ASC;`;
-  return (rows as any[]).map((r) => ({
-    id: r.id,
-    question: r.question,
-    answer: r.answer,
-    group_name: r.group_name || "General",
-    display_order: r.display_order || 0
-  }));
+  if (!sql) {
+    return FALLBACK_FAQS;
+  }
+  try {
+    const rows = await sql`SELECT * FROM faq ORDER BY display_order ASC, created_at ASC;`;
+    if (!rows || rows.length === 0) return FALLBACK_FAQS;
+    return (rows as any[]).map((r) => ({
+      id: r.id,
+      question: r.question,
+      answer: r.answer,
+      group_name: r.group_name || "General",
+      display_order: r.display_order || 0
+    }));
+  } catch {
+    return FALLBACK_FAQS;
+  }
 }
 
 export async function getContactMessages(): Promise<ContactMessage[]> {
   const sql = getSql();
-  const rows = await sql`SELECT * FROM messages ORDER BY created_at DESC;`;
-  return rows as ContactMessage[];
+  if (!sql) return [];
+  try {
+    const rows = await sql`SELECT * FROM messages ORDER BY created_at DESC;`;
+    return rows as ContactMessage[];
+  } catch {
+    return [];
+  }
 }
 
 export async function saveContactMessage(msg: {
@@ -242,7 +323,7 @@ export async function saveContactMessage(msg: {
   project_type?: string;
   message: string;
 }): Promise<{ success: boolean; id: string }> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   const id = `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   await sql`
     INSERT INTO messages (id, name, email, company, project_type, message, status)
@@ -256,7 +337,7 @@ export async function saveContactMessage(msg: {
 // -------------------------------------------------------------
 
 export async function upsertCaseStudy(data: Partial<CaseStudy> & { id: string; title: string; slug: string }): Promise<void> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   const isPublishing = data.status === "published";
 
   await sql`
@@ -316,7 +397,7 @@ export async function upsertCaseStudy(data: Partial<CaseStudy> & { id: string; t
 }
 
 export async function deleteCaseStudy(id: string): Promise<void> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   await sql`DELETE FROM case_studies WHERE id = ${id};`;
 }
 
@@ -341,7 +422,7 @@ export async function duplicateCaseStudy(id: string): Promise<string> {
 }
 
 export async function updateSiteSetting(key: string, value: any): Promise<void> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   await sql`
     INSERT INTO site_settings (key, value, updated_at)
     VALUES (${key}, ${JSON.stringify(value)}::jsonb, NOW())
@@ -350,7 +431,7 @@ export async function updateSiteSetting(key: string, value: any): Promise<void> 
 }
 
 export async function upsertTopic(topic: Topic): Promise<void> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   await sql`
     INSERT INTO topics (id, slug, name, description, template)
     VALUES (${topic.id}, ${topic.slug}, ${topic.name}, ${topic.description}, ${JSON.stringify(topic.template)}::jsonb)
@@ -363,12 +444,12 @@ export async function upsertTopic(topic: Topic): Promise<void> {
 }
 
 export async function deleteTopic(id: string): Promise<void> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   await sql`DELETE FROM topics WHERE id = ${id};`;
 }
 
 export async function upsertFaq(item: FaqItem): Promise<void> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   await sql`
     INSERT INTO faq (id, question, answer, group_name, display_order)
     VALUES (${item.id}, ${item.question}, ${item.answer}, ${item.group_name}, ${item.display_order})
@@ -381,12 +462,12 @@ export async function upsertFaq(item: FaqItem): Promise<void> {
 }
 
 export async function deleteFaq(id: string): Promise<void> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   await sql`DELETE FROM faq WHERE id = ${id};`;
 }
 
 export async function markMessageStatus(id: string, status: "unread" | "read" | "archived"): Promise<void> {
-  const sql = getSql();
+  const sql = getRequiredSql();
   await sql`UPDATE messages SET status = ${status} WHERE id = ${id};`;
 }
 

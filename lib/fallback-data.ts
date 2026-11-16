@@ -1,0 +1,215 @@
+import { CaseStudy, Topic, FaqItem } from "./db";
+
+export const FALLBACK_TOPICS: Topic[] = [
+  {
+    id: "topic-game",
+    slug: "game",
+    name: "Game Development",
+    description: "Real-time graphics, physics simulation, engine tooling, and gameplay architecture.",
+    template: [],
+  },
+  {
+    id: "topic-arvr",
+    slug: "ar-vr",
+    name: "AR / VR & Spatial",
+    description: "Spatial computing, hand tracking, immersive UX, and multi-user room synchronization.",
+    template: [],
+  },
+  {
+    id: "topic-backend",
+    slug: "backend",
+    name: "Backend & Systems",
+    description: "Distributed architectures, low-latency APIs, event streaming, and cloud infrastructure.",
+    template: [],
+  },
+  {
+    id: "topic-ai",
+    slug: "ai",
+    name: "AI & Machine Learning",
+    description: "LLM agent orchestration, local inference optimization, and synthetic asset generation.",
+    template: [],
+  },
+  {
+    id: "topic-tools",
+    slug: "tools",
+    name: "Tools & Editor Plugins",
+    description: "Developer tooling, CI/CD automation, asset pipeline analyzers, and workflow productivity.",
+    template: [],
+  },
+  {
+    id: "topic-fde",
+    slug: "fde",
+    name: "Forward Deployed Engineering",
+    description: "Customer-facing enterprise systems integration, air-gapped deployments, and custom ETL connectors.",
+    template: [],
+  },
+  {
+    id: "topic-cloud",
+    slug: "cloud-infra",
+    name: "Cloud Infrastructure",
+    description: "Multi-region cloud architecture, Kubernetes orchestration, and disaster recovery.",
+    template: [],
+  },
+];
+
+export const FALLBACK_CASE_STUDIES: CaseStudy[] = [
+  {
+    id: "cs-aetherfall",
+    slug: "aetherfall-aerial-combat",
+    title: "Aetherfall: High-Performance Flight Physics & Atmospheric Engine",
+    outcome: "Delivered 120 FPS deterministic aerodynamics and custom volumetric cloud shading on PC & console.",
+    summary: "A AAA-grade aerial combat simulator built in Unity with Burst Compiler, C# Job System, and compute shader atmospheric scattering.",
+    topic_id: "topic-game",
+    topic_name: "Game Development",
+    topic_slug: "game",
+    tags: ["Unity", "C#", "DOTS / Burst", "HLSL Compute", "Custom Physics"],
+    role: "Lead Systems & Graphics Architect",
+    duration: "14 months",
+    year: "2024",
+    stack: ["Unity 6", "C#", "HLSL", "DirectX 12", "FMOD Studio"],
+    links: {
+      demo: "https://example.com/aetherfall-demo",
+      github: "https://github.com/example/aetherfall-physics",
+    },
+    hero_media: {
+      type: "image",
+      drive_id: "1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs",
+      fallback_url: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1600&q=80",
+      alt: "Aetherfall fighter aircraft cruising through procedural volumetric cloudscape",
+    },
+    featured: true,
+    display_order: 1,
+    status: "published",
+    blocks: [
+      {
+        type: "rich_text",
+        title: "01 / The Challenge & Constraints",
+        content: "<p>Simulating real-time lift, drag polar equations, and supersonic shockwaves at 120 FPS with zero GC allocations.</p>",
+      },
+      {
+        type: "architecture",
+        title: "Simulation & Rollback Architecture",
+        diagram: `flowchart TD
+    subgraph ClientSimulation ["Client Simulation Frame (120 FPS)"]
+        Input["Pilot Flight Stick Controls"] --> Kinematics["Aircraft Kinematics Buffer"]
+        Kinematics --> LiftJob["LiftDragEvaluationJob (Burst Parallel)"]
+        LiftJob --> Airfoil["Chord Aerodynamics & Induced Drag"]
+        Airfoil --> Forces["Unmanaged Aerodynamic Forces"]
+        Forces --> Integrator["Verlet Motion Integrator"]
+    end`,
+      },
+    ],
+  },
+  {
+    id: "cs-hyperion",
+    slug: "hyperion-distributed-telemetry",
+    title: "Hyperion: 2.4M Event/Sec Distributed Telemetry & Analytics Engine",
+    outcome: "Architected high-throughput telemetry pipeline slashing query latency by 78% and infrastructure spend by 45%.",
+    summary: "A global event ingestion platform built for live-service games, processing 2.4 million events per second into ClickHouse.",
+    topic_id: "topic-backend",
+    topic_name: "Backend & Systems",
+    topic_slug: "backend",
+    tags: ["Go", "Kafka", "ClickHouse", "Kubernetes", "Redis", "Distributed Systems"],
+    role: "Principal Infrastructure Architect",
+    duration: "9 months",
+    year: "2024",
+    stack: ["Go 1.22", "Apache Kafka", "ClickHouse", "Redis Cluster", "Kubernetes"],
+    links: {},
+    hero_media: {
+      type: "image",
+      fallback_url: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=1600&q=80",
+      alt: "Hyperion real-time telemetry network topology",
+    },
+    featured: true,
+    display_order: 2,
+    status: "published",
+    blocks: [],
+  },
+  {
+    id: "cs-vanguard",
+    slug: "vanguard-enterprise-fde-rollout",
+    title: "Vanguard: Enterprise On-Premises Core Platform Rollout",
+    outcome: "Led high-stakes customer-site deployment of a real-time data engine in air-gapped financial VPCs, cutting client integration time from 3 months to 9 days.",
+    summary: "As Lead Forward Deployed Engineer (FDE), architected custom ingestion adapters and air-gapped Helm deployments for a Tier-1 financial institution.",
+    topic_id: "topic-fde",
+    topic_name: "Forward Deployed Engineering",
+    topic_slug: "fde",
+    tags: ["Forward Deployed", "FDE", "Go", "Kubernetes", "Air-Gapped", "Terraform", "Kafka"],
+    role: "Lead Forward Deployed Engineer (FDE)",
+    duration: "7 months",
+    year: "2024",
+    stack: ["Go 1.22", "Kubernetes", "Helm", "AWS PrivateLink", "Kafka", "Postgres", "Docker"],
+    links: {},
+    hero_media: {
+      type: "image",
+      fallback_url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1600&q=80",
+      alt: "Vanguard enterprise customer architecture topology",
+    },
+    featured: true,
+    display_order: 5,
+    status: "published",
+    blocks: [],
+  },
+  {
+    id: "cs-stratus",
+    slug: "stratus-multiregion-cloud-infra",
+    title: "Stratus: Multi-Region Active-Active Cloud Mesh & Disaster Recovery",
+    outcome: "Engineered multi-region active-active cloud infrastructure across AWS and GCP with 99.995% uptime and sub-minute disaster recovery failover.",
+    summary: "Architected a dual-cloud multi-region Kubernetes platform with Cilium eBPF mesh and automated Terraform provisioning.",
+    topic_id: "topic-cloud",
+    topic_name: "Cloud Infrastructure",
+    topic_slug: "cloud-infra",
+    tags: ["Cloud Infra", "Kubernetes", "AWS", "GCP", "Terraform", "eBPF", "Neon Postgres"],
+    role: "Principal Cloud Platform Architect",
+    duration: "11 months",
+    year: "2024",
+    stack: ["AWS", "Google Cloud", "Kubernetes", "Terraform", "Cilium eBPF", "Envoy", "Neon Postgres", "ArgoCD"],
+    links: {},
+    hero_media: {
+      type: "image",
+      fallback_url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1600&q=80",
+      alt: "Stratus global multi-region cloud mesh topology",
+    },
+    featured: true,
+    display_order: 6,
+    status: "published",
+    blocks: [],
+  },
+];
+
+export const FALLBACK_SETTINGS: Record<string, any> = {
+  hero_headline: "Engineering immersive game engines, spatial systems & distributed scale.",
+  hero_intro: "Bridging low-level systems engineering with obsessive interactive polish. 8+ years building AAA graphics pipelines, spatial computing platforms, and distributed systems handling millions of events.",
+  about_story: "I began my journey disassembling graphics shaders and network protocols in C++, later scaling into full engine architecture and high-throughput backend infrastructure.\n\nMy philosophy: performance is never an afterthought—it is the foundational prerequisite for true user delight.",
+  contact_email: "fahad@northfold-portfolio.dev",
+  cv_url: "https://drive.google.com/file/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs/view?usp=sharing",
+  social_github: "https://github.com",
+  social_linkedin: "https://linkedin.com",
+  social_twitter: "https://x.com",
+  skills_list: [
+    "C# / Unity DOTS & Burst",
+    "C++ / HLSL Graphics",
+    "Go / Distributed Systems",
+    "TypeScript / Next.js",
+    "visionOS / OpenXR",
+    "Postgres / ClickHouse / Kafka",
+    "Docker / Kubernetes",
+  ],
+};
+
+export const FALLBACK_FAQS: FaqItem[] = [
+  {
+    id: "faq-1",
+    question: "What types of projects do you typically take on?",
+    answer: "I specialize in high-performance technical challenges: real-time 3D simulation, spatial computing, distributed backend architecture, and forward deployed enterprise engineering.",
+    group_name: "Engagements",
+    display_order: 1,
+  },
+  {
+    id: "faq-2",
+    question: "How do you handle client confidentiality and NDAs?",
+    answer: "I respect client IP with rigorous discretion. All proprietary data and sensitive architectural keys can be fully redacted or generalized into anonymized case studies.",
+    group_name: "Engagements",
+    display_order: 2,
+  },
+];

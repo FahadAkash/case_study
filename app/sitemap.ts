@@ -2,8 +2,7 @@ import { MetadataRoute } from "next";
 import { getCaseStudies } from "@/lib/db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://northfold-portfolio.dev";
-  const caseStudies = await getCaseStudies({ status: "published" });
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://northfold-portfolio.dev";
 
   const staticPages: MetadataRoute.Sitemap = [
     {
@@ -38,12 +37,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const caseStudyPages: MetadataRoute.Sitemap = caseStudies.map((cs) => ({
-    url: `${baseUrl}/work/${cs.slug}`,
-    lastModified: cs.updated_at ? new Date(cs.updated_at) : new Date(),
-    changeFrequency: "monthly",
-    priority: 0.9,
-  }));
+  try {
+    const caseStudies = await getCaseStudies({ status: "published" });
+    const caseStudyPages: MetadataRoute.Sitemap = caseStudies.map((cs) => ({
+      url: `${baseUrl}/work/${cs.slug}`,
+      lastModified: cs.updated_at ? new Date(cs.updated_at) : new Date(),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    }));
 
-  return [...staticPages, ...caseStudyPages];
+    return [...staticPages, ...caseStudyPages];
+  } catch (err) {
+    console.warn("Could not query dynamic case studies for sitemap, returning static pages:", err);
+    return staticPages;
+  }
 }

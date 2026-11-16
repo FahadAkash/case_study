@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getFullBackup } from "@/lib/db";
 import { isAuthenticatedAdmin } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const isAuth = await isAuthenticatedAdmin();
   if (!isAuth) {
