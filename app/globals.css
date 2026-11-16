@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #FBFBFA;
+    --foreground: #111111;
+    --card: #FFFFFF;
+    --card-foreground: #111111;
+    --popover: #FFFFFF;
+    --popover-foreground: #111111;
+    --primary: #111111;
+    --primary-foreground: #FBFBFA;
+    --secondary: #F0F0ED;
+    --secondary-foreground: #111111;
+    --muted: #EAEAEE;
+    --muted-foreground: #666662;
+    --accent: #F4F4F1;
+    --accent-foreground: #111111;
+    --destructive: #E11D48;
+    --destructive-foreground: #FFFFFF;
+    --border: #E2E2DC;
+    --input: #E2E2DC;
+    --ring: #111111;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-northfold-ink selection:text-northfold-offwhite;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    letter-spacing: -0.03em;
+  }
+}
+
+/* Halftone dot pattern overlay */
+.halftone-dots {
+  background-image: radial-gradient(#111111 1.5px, transparent 1.5px);
+  background-size: 8px 8px;
+}
+
+.halftone-dots-subtle {
+  background-image: radial-gradient(rgba(17, 17, 17, 0.15) 1.2px, transparent 1.2px);
+  background-size: 10px 10px;
+}
+
+.halftone-dots-dark {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1.2px, transparent 1.2px);
+  background-size: 8px 8px;
+}
+
+/* Subtle noise texture */
+.grain-overlay {
+  background-image: radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0);
+  background-size: 3px 3px;
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F4F4F1;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4D4CE;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #111111;
+}
