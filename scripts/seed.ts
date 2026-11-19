@@ -21,6 +21,17 @@ const sql = neon(connectionString);
 async function seed() {
   console.log("Seeding initial data...");
 
+  // Clean up any legacy or duplicate placeholder case studies
+  await sql`
+    DELETE FROM case_studies 
+    WHERE id NOT IN (
+      'cs-giz-emergency', 'cs-cmp-vr', 'cs-afis-biometrics', 
+      'cs-lexora-ai', 'cs-flowpilot-ai', 'cs-aetherfall', 
+      'cs-vanguard', 'cs-stratus'
+    );
+  `;
+  console.log("✓ Cleaned legacy placeholder rows");
+
   // 1. Topics
   for (const t of FALLBACK_TOPICS) {
     await sql`
